@@ -23,6 +23,7 @@ async def get_download_link(request: DownloadRequest = Body(...)):
             'format': 'best',
             'quiet': True,
             'no_warnings': True,
+            # 'cookiesfrombrowser': ('chrome',),  # Use cookies from Chrome browser
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
