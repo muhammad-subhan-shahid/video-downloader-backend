@@ -20,10 +20,11 @@ class DownloadRequest(BaseModel):
 async def get_download_link(request: DownloadRequest = Body(...)):
     try:
         ydl_opts = {
-            'format': 'best',
+            'format': '18/best',  # Using format 18 (360p mp4) as first choice
             'quiet': True,
             'no_warnings': True,
-            # 'cookiesfrombrowser': ('chrome',),  # Use cookies from Chrome browser
+            'extractor_args': {'youtube': {'player_client': ['android']}},  # Try using android client
+            'no_check_certificates': True,
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
