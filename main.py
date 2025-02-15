@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
+from fastapi.responses import StreamingResponse
+import requests
 
 app = FastAPI()
 
@@ -31,8 +33,26 @@ async def get_download_link(request: DownloadRequest = Body(...)):
             info = ydl.extract_info(request.url, download=False)
             return {
                 "title": info.get('title', 'video'),
-                "url": info['url']
+                "url": info['url'],
             }
             
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/download")
+async def download_video(url: str, title: str):
+    try:
+        def iterfile():
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        yield chunk
+
+        headers = {
+            'Content-Disposition': f'attachment; filename="{title}.mp4"'
+        }
+        
+        return StreamingResponse(iterfile(), headers=headers, media_type='video/mp4')
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
